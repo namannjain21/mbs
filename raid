@@ -1,0 +1,93 @@
+sudo apt install mdadm -y
+sudo lsblk ( after add 4 harddisk 20Gper)
+sudo reboot or sudo init 6
+sudo mdadm --create /dev/md0 --level 1 --raid-devices=2 /dev/sdb /dev/sdc
+sudo cat /proc/mdstat
+sudo mdadm -D /dev/md0
+sudo mkdir /raid1
+sudo mkfs.ext4 /dev/md0
+sudo mount -t ext4 /dev/md0 /raid1
+cd /raid1
+sudo vim test.txt
+cd
+sudo mdadm --manage /dev/md0 --fail /dev/sdb
+sudo watch cat /proc/mdstat
+sudo mdadm -D /dev/md0 
+sudo ls /raid1/
+sudo mdadm --manage /dev/md0  --remove /dev/sdb
+sudo mdadm -D /dev/md0
+ls /raid1/
+sudo mdadm --manage /dev/md0 --add /dev/sdd
+sudo mdadm -D /dev/md0
+sudo vim /etc/fstab
+( /dev/md0        /raid1  ext4 default    0       0 ) add this in last
+sudo update-initramfs -u
+sudo vim /etc/fstab ( remove /dev/md0 line )
+sudo init 6 
+ls /raid1/
+sudo umount /raid1
+sudo mdadm --stop-superblock /dev/sdb /dev/sdc /dev/sdd
+sudo mdadm --assemble /dev/md0
+sudo mdadm --stop /dev/md0
+sudo mdadm --zero-superblock /dev/sdb /dev/sdc /dev/sdd
+
+raid 5
+sudo mdadm --create /dev/md1 --level 5 --raid-devices 3 /dev/sdb /dev/sdc /dev/sdd
+sudo mkfs.ext4 /dev/md1
+sudo mount -t auto /dev/md1 /raid1
+ls /raid1
+sudo cat /proc/mdstat
+sudo vim /raid1/demo.txt
+ls /raid1
+sudo mdadm --manage /dev/md1 --fail /dev/sdc
+sudo mdadm -D /dev/md1
+ls /raid1
+sudo cat /proc/mdstat
+sudo mdadm --manage /dev/md1 --remove /dev/sdc
+sudo mdadm -D /dev/md1
+sudo cat /proc/mdstat
+sudo mdadm --manage /dev/md1 --add dev/sde
+sudo cat /proc/mdstat 
+sudo vim /etc/fstab
+( /dev/md1        /raid1  auto    default 0       0 ) add this in last
+ls /raid1
+sudo update-initramfs -u
+sudo init 6
+ls /raid1
+
+sudo mount -t auto /dev/<new> /raid1 ( if your device name changed will removing )
+sudo /raid1
+
+sudo mdadm --manage /dev/md1 --fail /dev/sdb
+sudo mdadm -D /dev/md1 | grep degraded
+sudo cat /proc/mdstat
+
+sudo vim /raid1/test ( if show read-only then raid failed )
+sudo umount /raid1
+sudo mdadm --stop /dev/md1
+sudo mdadm -D /dev/md1
+sudo mdadm --assemble /dev/md1
+sudo mdadm --zero-superblock /dev/sdb /dev/sdc /dev/sdd /dev/sde
+
+raid 6
+sudo mdadm --create /dev/md2 --level 6 --raid-devices 4 /dev/sdb /dev/sdc /dev/sdd /dev/sde
+sudo cat /proc/mdstat
+sudo mkfs.ext4 /dev/md2
+sudo systemctl daemon-reload
+mount
+sudo vim /raid1/demo1.txt
+ls /raid1
+sudo cat /proc/mdstat
+sudo mdadm --manage /dev/md2 --fail /dev/sdd
+sudo cat /proc/mdstat
+ls /raid1
+sudo mdadm --manage /dev/md2 --fail /dev/sdc
+sudo mdadm -D /dev/md2
+sudo cat /proc/mdstat
+ls /raid1
+
+sudo umount /dev/md2
+sudo mdadm --stop /dev/md2
+sudo mdadm --zero-superblock /dev/sdb /dev/sdc /dev/sdd /dev/sde
+sudo cat /proc/mdstat
+
