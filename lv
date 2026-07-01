@@ -1,0 +1,56 @@
+sudo apt install lvm2
+sudo pvs/vgs/lvs
+sudo pvdisplay
+sudo lvdisplay 
+
+sudo pvcreate /dev/sdb /dev/sdc 
+sudo pvs
+sudo pvdisplay
+
+sudo vgcreate hpcsa /dev/sdb /dev/sdc
+sudo vgs 
+sudo vgdisplay
+sudo pvs ( also show VG's )
+
+sudo lvcreate -n app1 -L 5G hpcsa
+sudo lvs
+sudo lvdisplay
+sudo lvcreate -n app2 -L 10G hpcsa
+
+sudo mkfs.ext4 /dev/hpcsa/app1
+sudo mkfs.ext4 /dev/hpcsa/app2
+
+sudo mkdir /app1
+sudo mkdir /app2
+sudo mount -t auto /dev/hpcsa/app1 /app1
+sudo mount -t auto /dev/hpcsa/app2 /app2
+
+sudo cp /etc/fstab /app1
+sudo cp /etc/passwd /app1
+sudo cp /etc/group/app2
+sudo cp /etc/shadow /app2
+df -khT
+
+sudo lvextend -L +10G /dev/hpcsa/app1 
+sudo lvs
+df -khT
+
+sudo resize2fs /dev/hpcsa/app1
+df -khT
+
+sudo lvextend -L +14G /dev/hpcsa/app2
+sudo lvs
+sudo resize2fs /dev/hpcsa/app2
+df -khT
+sudo lvs 
+sudo umount /app2
+sudo e2fsck -f /dev/hpcsa/app2
+sudo resize2fs /dev/hpcsa/app2 19G
+df -khT
+sudo lvreduce -L 19G /dev/hpcsa/app2
+sudo lvs 
+
+sudo mount -t auto /dev/hpcsa/app2 /app2
+ls /app2
+df -khT
+sudo vgs
