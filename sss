@@ -1,0 +1,24 @@
+sudo apt install mdadm -y
+sudo lsblk ( after add 4 harddisk 20Gper)
+sudo reboot or sudo init 6
+sudo mdadm --create /dev/md0 --level 1 --raid-devices=2 /dev/sdb /dev/sdc
+sudo cat /proc/mdstat
+sudo mdadm -D /dev/md0
+sudo mkdir /raid1
+sudo mkfs.ext4 /dev/md0
+sudo mount -t ext4 /dev/md0 /raid1
+cd /raid1
+sudo vim test.txt
+cd
+sudo mdadm --manage /dev/md0 --fail /dev/sdb
+sudo watch cat /proc/mdstat
+sudo mdadm -D /dev/md0 
+sudo ls /raid1/
+sudo mdadm --manage /dev/md0  --remove /dev/sdb
+sudo mdadm -D /dev/md0
+ls /raid1/
+sudo mdadm --manage /dev/md0 --add /dev/sdd
+sudo mdadm -D /dev/md0
+sudo vim /etc/fstab
+( /dev/md0        /raid1  ext4 default    0       0 ) add this in last
+
