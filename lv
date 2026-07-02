@@ -54,3 +54,155 @@ sudo mount -t auto /dev/hpcsa/app2 /app2
 ls /app2
 df -khT
 sudo vgs
+
+sudo lvextend -L +5G /dev/hpcsa/app1
+sudo resize2fs /dev/hpcsa/app1  
+sudo lvs
+df -khT
+
+sudo vgextend hpcsa /dev/sdd
+sudo pvs
+sudo vgs
+
+sudo umount /app1
+sudo umount /app2
+sudo lvremove /dev/hpcsa/app1
+sudo lvremove /dev/hpcsa/app2
+sudo vgremove hpcsa
+sudo pvremove /dev/sdb /dev/sdc /dev/sdd
+sudo pvs/vgs/lvs
+
+sudo vgcreate vg0 /dev/sdb /dev/sdc
+sudo vgcreate vg1 /dev/sdd /dev/sde
+sudo vgs
+
+sudo lvcreate -n lv0 -L 39G vg0
+sudo lvcreate -n lv1 -L 39G vg1
+sudo lvs
+
+sudo mkfs.ext4 /dev/vg0/lv0
+sudo mkfs.ext4 /dev/vg1/lv1
+
+sudo mount -t auto /dev/vg0/lv0 /app1
+sudo mount -t auto /dev/vg1/lv1 /app2
+
+sudo cp -r /etc/f* /app1
+sudo ls /app1
+sudo cp -r /etc/m* /app2
+sudo ls /app2
+df -khT
+
+sudo umount /app2
+sudo resize2fs /dev/vg1/lv1 20G
+sudo e2fsck -f /dev/vg1/lv1
+sudo resize2fs /dev/vg1/lv1 20G
+sudo lvreduce -L 20G /dev/vg1/lv1
+sudo vgs
+
+sudo resize2fs /dev/vg1/lv1 15G
+sudo lvcreduce -L /dev/vg1/lv1
+sudo lvs
+sudo vgs
+
+sudo pvmove /dev/sde 
+sudo vgreduce vg1 /dev/sde
+sudo vgs
+
+sudo mount -t ext4 /dev/vg1/lv1 /app2
+sudo vgs
+
+sudo vgextend vg0 /dev/sde
+sudo vgs
+
+sudo lvextend -L +20G /dev/vg0/lv0
+sudo resize2fs /dev/vg0/lv0
+df -khT
+
+sudo umount /app1
+sudo umount /app2
+sudo lvremove /dev/vg0/lv0
+sudo lvremove /dev/vg1/lv1
+sudo vgremove vg0
+sudo vgremove vg1
+sudo lvs
+
+sudo vgcreate raid-vg /dev/sdb /dev/sdc /dev/sdd
+
+sudo lvcreate --type raid5 -L 30G -n lv5 raid-vg
+sudo lvs
+sudo vgs
+
+sudo mkfs.ext4 /dev/raid-vg/lvs
+sudo mount -t auto /dev/raid-vg/lv5 /app1
+
+sudo lvextend -L +5G /dev/raid-vg/lv5
+sudo lvs
+sudo resize2fs /dev/raid-vg/lv5
+sudo lvs
+df -khT
+
+sudo umount /app1
+sudo e2fsck -f /dev/raid-vg/lv5
+sudo resize2fs /dev/raid-vg/lv5 18G
+sudo lvreduce -L 18G /dev/raid-vg/lv5
+sudo vgs
+
+sudo vgextend raid-vg /dev/sde
+sudo vgs
+sudo pvmove /dev/sdd
+sudo vgreduce raid-vg /dev/sdd
+sudo vgs
+
+sudo lvremove /dev/raid-vg/lv5
+
+sudo lvcreate --type raid6 -L 10G -n lv6 raid-vg
+sudo vgextend raid-vg /dev/sdd
+
+sudo vgremove raid-vg
+sudo pvreove /dev/sdb /dev/sdc /dev/sdd /dev/sde
+
+
+end
+
+
+
+
+sudo vgcreate demo-vg /devsdb /dev/sdc /dev/sdd
+sudo vgs
+
+sudo lvcreate --type raid1 -L 8G -n hpcsa demo-vg
+sudo lvcreate --type raid1 -L 5G -n ditiss demo-vg
+sudo lvs
+
+sudo mkfs.ext4 /dev/demo-vg/hpcsa
+sudo mkfs.ext4 /dev/demo-vg/hpcsa
+
+sudo mkdir /hpcsa-data
+sudo mkdir /ditiss-data
+sudo mount -t auto /dev/demo-vg/hpcsa /hpcsa-data
+sudo mount -t auto /dev/demo-vg/ditiss /ditiss-data
+mount 
+
+sudo cp -r /etc/f* /hpcsa-data
+sudo cp -r /etc/m* /ditiss-data
+sudo vim /etc/fstab
+/dev/demo-vg/hpcsa /hpcsa-data auto defaults 0 0
+/dev/demo-vg/ditiss /ditiss-data auto defaults 0 0
+
+sudo update-initramfs -u
+sudo init 6 
+df -khT
+
+sudo lvextend -L +2G /dev/demo-vg/hpcsa
+sudo resize2fs /dev/demo-vg/hpcsa
+sudo lvs
+df -khT
+
+sudo umount /ditiss-data
+sudo e2fsck -f /dev/demo-vg/ditiss
+sudo reesize2fs /dev/demo-vg/ditiss 3G
+sudo lvreduce -L 3G /dev/demo-vg/ditiss
+
+sudo mount -t auto /dev/demo-vg/ditiss-data
+ls /ditiss-data
+sudo lvs
